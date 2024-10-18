@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Basement",
+  title: "BizNest",
   description: "Create an account to get started.",
 };
 
