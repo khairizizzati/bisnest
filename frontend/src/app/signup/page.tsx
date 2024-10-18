@@ -62,7 +62,7 @@ export default function SignupPage() {
               fontSize: "16px",
             }}
           >
-            Basement
+            BizNest
           </div>
           <div style={{ textAlign: "left" }}>
             <Title

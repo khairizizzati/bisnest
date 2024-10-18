@@ -66,7 +66,7 @@ const LoginForm: React.FC = () => {
               fontSize: "20px",
             }}
           >
-            Basement
+           BizNest
           </div>
           <div style={{ textAlign: "left" }}>
             <Title level={1} style={{ marginBottom: "10px" }}>
