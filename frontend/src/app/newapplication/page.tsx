@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { Form, Input, Button, Select, message, Row, Col } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import axios from "axios"; // Make sure to install axios if you haven't already
@@ -23,17 +23,24 @@ interface FormValues {
 
 const ApplicationForm: React.FC = () => {
   const [form] = Form.useForm();
+  const router = useRouter(); // Inisialisasi useRouter
 
   const onFinish = async (values: FormValues) => {
     console.log("Form values:", values);
     try {
-      // Example: await axios.post('/api/submit', values);
+      await axios.post("http://localhost:5000/api/submit", values); // Hantar ke backend
       message.success("Application submitted successfully!");
-      form.resetFields(); // Reset form fields after submission
-    } catch (error: any) {
+      form.resetFields(); // Reset borang selepas berjaya
+    } catch (error) {
       console.error("Submission error:", error);
       message.error("Failed to submit application.");
     }
+  };
+
+  // Fungsi untuk menangani klik butang Batal
+  const handleCancel = () => {
+    // Navigasi kembali ke halaman utama atau halaman lain
+    router.push("/"); // Ganti '/' dengan path yang diinginkan
   };
 
   return (
@@ -97,9 +104,7 @@ const ApplicationForm: React.FC = () => {
               ]}
             >
               <Select placeholder="Select your country">
-                <Option value="USA">United States</Option>
-                <Option value="CAN">Canada</Option>
-                <Option value="UK">United Kingdom</Option>
+                <Option value="MALAYSIA">MALAYSIA</Option>
                 {/* Add more countries as needed */}
               </Select>
             </Form.Item>
@@ -147,8 +152,19 @@ const ApplicationForm: React.FC = () => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{ width: "48%", marginRight: "4%" }}
+          >
             Submit
+          </Button>
+          <Button
+            type="default"
+            onClick={handleCancel}
+            style={{ width: "48%" }}
+          >
+            Cancel
           </Button>
         </Form.Item>
       </Form>

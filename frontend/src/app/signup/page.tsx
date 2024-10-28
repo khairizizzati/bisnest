@@ -2,29 +2,47 @@
 
 import { useRouter } from "next/navigation"; // For app router
 import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Form, Input, Button, Typography, Carousel, message } from "antd";
+import { Form, Input, Button, Typography, message, Carousel } from "antd";
 import React from "react";
+import axios from "axios";
+
+const BACKEND_URL = "http://localhost:3001/api/signup"; // Ensure this points to the correct backend URL
 
 export default function SignupPage() {
   const { Title, Paragraph } = Typography;
-  const router = useRouter(); // Replaces useNavigate from React Router
+  const router = useRouter();
+
+  const registerUser = async (values: any) => {
+    try {
+      const response = await axios.post(BACKEND_URL, values);
+
+      if (response.status === 201) {
+        message.success("Account created successfully!");
+        router.push("/login");
+      } else {
+        message.error(response.data.message || "Registration failed.");
+      }
+    } catch (error: any) {
+      // Type assertion here
+      console.error("Error:", error);
+      message.error(
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+          "Network error. Please try again."
+      );
+    }
+  };
 
   const onFinish = (values: any) => {
-    console.log("Signup successful: ", values);
-    message.success("Account created successfully!");
-
-    // Navigate to login page after signup
-    router.push("/login");
+    console.log("Signup successful:", values);
+    registerUser(values);
   };
 
   const onFinishFailed = (errorInfo: any) => {
     console.error("Signup failed:", errorInfo);
     message.error("Please fill out the form correctly.");
   };
-  const barStyle = (height: number, width: string): React.CSSProperties => ({
-    height: `${height}px`,
-    width: width,
-  });
 
   return (
     <div
@@ -32,7 +50,7 @@ export default function SignupPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh", // Ensure full page height to fix spacing
+        height: "100vh",
       }}
     >
       <div
@@ -43,11 +61,10 @@ export default function SignupPage() {
           width: "100%",
         }}
       >
-        {/* Left Form Section */}
         <div
           style={{
             flex: 1,
-            padding: "90px", // Adjusted padding to align content
+            padding: "90px",
             backgroundColor: "#fff",
             borderRadius: "8px",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
@@ -56,14 +73,7 @@ export default function SignupPage() {
             justifyContent: "center",
           }}
         >
-          <div
-            style={{
-              fontWeight: "bold",
-              fontSize: "16px",
-            }}
-          >
-            BizNest
-          </div>
+          <div style={{ fontWeight: "bold", fontSize: "16px" }}>BizNest</div>
           <div style={{ textAlign: "left" }}>
             <Title
               level={1}
@@ -96,16 +106,12 @@ export default function SignupPage() {
           >
             <img
               src="/google.ico"
-              style={{
-                width: "20px", // Adjust width as needed
-                height: "20px", // Adjust height as needed
-                marginRight: "10px",
-              }}
+              style={{ width: "20px", height: "20px", marginRight: "10px" }}
             />
             Sign in with Google
           </Button>
 
-          <div style={{ display: "flex", alignItems: "center", margin: " 0" }}>
+          <div style={{ display: "flex", alignItems: "center", margin: "0" }}>
             <div
               style={{
                 flex: 1,
@@ -133,7 +139,7 @@ export default function SignupPage() {
           >
             <Form.Item
               label="Name"
-              name="name"
+              name="fullName"
               rules={[{ required: true, message: "Please enter your name!" }]}
             >
               <Input
@@ -205,7 +211,6 @@ export default function SignupPage() {
             </a>
           </div>
         </div>
-
         {/* Right Carousel Section */}
         <div
           style={{
