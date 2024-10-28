@@ -1,4 +1,4 @@
-"use client";
+"use client"; //try
 
 import React, { useEffect, useState } from "react";
 import { Table, Button, Layout, Typography, Card, Tooltip } from "antd";
