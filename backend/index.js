@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -23,9 +23,9 @@ const config = {
 };
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000' })); // Allow only frontend origin
+app.use(cors()); // Allow all origins during development
 app.use(express.json()); // Parse JSON bodies
-app.use(express.static(path.join(__dirname, 'frontend/build'))); // Serve static frontend
+app.use(express.static(path.join(__dirname, 'frontend/build'))); // Serve frontend files
 
 // Connect to the database
 const connectToDatabase = async () => {
@@ -34,13 +34,14 @@ const connectToDatabase = async () => {
     console.log('Database connected successfully');
   } catch (err) {
     console.error('Database connection failed:', err.message);
+    setTimeout(connectToDatabase, 5000); // Retry connection after 5 seconds
   }
 };
 
 // Handle database connection errors
 sql.on('error', (err) => {
   console.error('Database connection error:', err);
-  connectToDatabase(); // Reconnect if connection is lost
+  connectToDatabase(); // Reconnect on error
 });
 
 // Middleware to authenticate JWT tokens
@@ -48,42 +49,35 @@ const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET || 'defaultSecretKey', (err, user) => {
     if (err) return res.status(403).json({ message: 'Invalid token' });
     req.user = user;
     next();
   });
 };
 
-// Fetch all users (Protected Route)
-app.get('/api/users', authenticateToken, async (req, res) => {
-  try {
-    const result = await sql.query`SELECT id, fullName, email FROM Users`;
-    res.json(result.recordset);
-  } catch (err) {
-    console.error('Error fetching users:', err.message);
-    res.status(500).send({ message: 'Error fetching users' });
-  }
-});
-
-// Login endpoint
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const result = await sql.query`SELECT * FROM Users WHERE email = ${email}`;
+    
+    // Pastikan hasil tidak kosong
     if (result.recordset.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const user = result.recordset[0];
+
+    // Pastikan kata laluan yang disimpan di database adalah di-hash
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    // Generate JWT token
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'defaultSecretKey', {
       expiresIn: '1h',
     });
 
@@ -93,6 +87,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // Signup endpoint
 app.post('/api/signup', async (req, res) => {
@@ -115,7 +110,8 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-app.post("/api/submit", async (req, res) => {
+// Application form submission endpoint
+app.post('/api/submit', async (req, res) => {
   const {
     companyName,
     companyId,
@@ -130,32 +126,30 @@ app.post("/api/submit", async (req, res) => {
   } = req.body;
 
   try {
-    // Sambung ke MSSQL
-    let pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(config);
 
-    // SQL query untuk insert data
     await pool.request()
-      .input("companyName", sql.VarChar, companyName)
-      .input("companyId", sql.VarChar, companyId)
-      .input("addressLine1", sql.VarChar, addressLine1)
-      .input("addressLine2", sql.VarChar, addressLine2)
-      .input("addressLine3", sql.VarChar, addressLine3)
-      .input("country", sql.VarChar, country)
-      .input("state", sql.VarChar, state)
-      .input("city", sql.VarChar, city)
-      .input("postcode", sql.VarChar, postcode)
-      .input("description", sql.Text, description)
-      .query(
-        `INSERT INTO Applications (companyName, companyId, addressLine1, addressLine2, 
-         addressLine3, country, state, city, postcode, description)
-         VALUES (@companyName, @companyId, @addressLine1, @addressLine2, 
-         @addressLine3, @country, @state, @city, @postcode, @description)`
-      );
+      .input('companyName', sql.VarChar, companyName)
+      .input('companyId', sql.VarChar, companyId)
+      .input('addressLine1', sql.VarChar, addressLine1)
+      .input('addressLine2', sql.VarChar, addressLine2)
+      .input('addressLine3', sql.VarChar, addressLine3)
+      .input('country', sql.VarChar, country)
+      .input('state', sql.VarChar, state)
+      .input('city', sql.VarChar, city)
+      .input('postcode', sql.VarChar, postcode)
+      .input('description', sql.Text, description)
+      .query(`
+        INSERT INTO Applications (companyName, companyId, addressLine1, addressLine2, 
+          addressLine3, country, state, city, postcode, description)
+        VALUES (@companyName, @companyId, @addressLine1, @addressLine2, 
+          @addressLine3, @country, @state, @city, @postcode, @description)
+      `);
 
-    res.status(201).send("Application submitted successfully.");
-  } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).send("Error submitting application.");
+    res.status(201).send('Application submitted successfully.');
+  } catch (err) {
+    console.error('Database error:', err.message);
+    res.status(500).json({ message: 'Error submitting application' });
   }
 });
 
@@ -169,8 +163,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
 });
 
-// Start the server and connect to the database
-app.listen(port, () => {
+// Start the server
+app.listen(port, (err) => {
+  if (err) {
+    console.error(`Failed to start server on port ${port}:`, err.message);
+    process.exit(1);
+  }
   console.log(`Server running on http://localhost:${port}`);
   connectToDatabase();
 });
