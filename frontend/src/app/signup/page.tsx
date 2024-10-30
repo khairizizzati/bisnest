@@ -1,13 +1,13 @@
-"use client"; // Required for client-side hooks like useRouter
+"use client";
 
-import { useRouter } from "next/navigation"; // For app router
+import { useRouter } from "next/navigation";
+import "antd/dist/antd.css";
 import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Form, Input, Button, Typography, message, Carousel } from "antd";
 import React from "react";
 import axios from "axios";
-import "antd/dist/antd.css";
 
-const BACKEND_URL = "http://localhost:3001/api/signup"; // Ensure this points to the correct backend URL
+const BACKEND_URL = "http://localhost:3001/api/signup";
 
 export default function SignupPage() {
   const { Title, Paragraph } = Typography;
@@ -57,9 +57,8 @@ export default function SignupPage() {
       <div
         style={{
           display: "flex",
-          maxWidth: "1200px",
-          maxHeight: "700px",
-          width: "100%",
+          maxWidth: "70%",
+          maxHeight: "85%",
         }}
       >
         <div
@@ -72,6 +71,7 @@ export default function SignupPage() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
+            maxHeight: "85%",
           }}
         >
           <div style={{ fontWeight: "bold", fontSize: "16px" }}>BizNest</div>
