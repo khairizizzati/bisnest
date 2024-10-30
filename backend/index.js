@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -23,9 +23,9 @@ const config = {
 };
 
 // Middleware
-app.use(cors()); // Allow all origins during development
-app.use(express.json()); // Parse JSON bodies
-app.use(express.static(path.join(__dirname, 'frontend/build'))); // Serve frontend files
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 // Connect to the database
 const connectToDatabase = async () => {
@@ -34,15 +34,9 @@ const connectToDatabase = async () => {
     console.log('Database connected successfully');
   } catch (err) {
     console.error('Database connection failed:', err.message);
-    setTimeout(connectToDatabase, 5000); // Retry connection after 5 seconds
+    setTimeout(connectToDatabase, 5000);
   }
 };
-
-// Handle database connection errors
-sql.on('error', (err) => {
-  console.error('Database connection error:', err);
-  connectToDatabase(); // Reconnect on error
-});
 
 // Middleware to authenticate JWT tokens
 const authenticateToken = (req, res, next) => {
@@ -56,27 +50,23 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Login endpoint
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const result = await sql.query`SELECT * FROM Users WHERE email = ${email}`;
-    
-    // Pastikan hasil tidak kosong
     if (result.recordset.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const user = result.recordset[0];
-
-    // Pastikan kata laluan yang disimpan di database adalah di-hash
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'defaultSecretKey', {
       expiresIn: '1h',
     });
@@ -87,7 +77,6 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 
 // Signup endpoint
 app.post('/api/signup', async (req, res) => {
@@ -110,59 +99,6 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// Application form submission endpoint
-app.post('/api/submit', async (req, res) => {
-  const {
-    companyName,
-    companyId,
-    addressLine1,
-    addressLine2,
-    addressLine3,
-    country,
-    state,
-    city,
-    postcode,
-    description,
-  } = req.body;
-
-  try {
-    const pool = await sql.connect(config);
-
-    await pool.request()
-      .input('companyName', sql.VarChar, companyName)
-      .input('companyId', sql.VarChar, companyId)
-      .input('addressLine1', sql.VarChar, addressLine1)
-      .input('addressLine2', sql.VarChar, addressLine2)
-      .input('addressLine3', sql.VarChar, addressLine3)
-      .input('country', sql.VarChar, country)
-      .input('state', sql.VarChar, state)
-      .input('city', sql.VarChar, city)
-      .input('postcode', sql.VarChar, postcode)
-      .input('description', sql.Text, description)
-      .query(`
-        INSERT INTO Applications (companyName, companyId, addressLine1, addressLine2, 
-          addressLine3, country, state, city, postcode, description)
-        VALUES (@companyName, @companyId, @addressLine1, @addressLine2, 
-          @addressLine3, @country, @state, @city, @postcode, @description)
-      `);
-
-    res.status(201).send('Application submitted successfully.');
-  } catch (err) {
-    console.error('Database error:', err.message);
-    res.status(500).json({ message: 'Error submitting application' });
-  }
-});
-
-// Serve React frontend
-app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
-
-// Catch-all route for React frontend paths
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
-
 // Start the server
 app.listen(port, (err) => {
   if (err) {
@@ -172,4 +108,5 @@ app.listen(port, (err) => {
   console.log(`Server running on http://localhost:${port}`);
   connectToDatabase();
 });
+
 

@@ -5,6 +5,7 @@ import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Form, Input, Button, Typography, message, Carousel } from "antd";
 import React from "react";
 import axios from "axios";
+import "antd/dist/antd.css";
 
 const BACKEND_URL = "http://localhost:3001/api/signup"; // Ensure this points to the correct backend URL
 
