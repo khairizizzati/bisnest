@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Layout, Typography, Card, Tooltip } from "antd";
 import { LogoutOutlined, PlusOutlined } from "@ant-design/icons";
-import { useRouter } from "next/navigation"; // Ensure you're using the correct router
-import { signOut } from "next-auth/react"; // Import signOut
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import "antd/dist/antd.css";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -29,69 +30,6 @@ const Dashboard: React.FC = () => {
         companyId: "TIN123",
         description: "Innovative tech solutions.",
         createdDate: "2024-10-01",
-      },
-      {
-        key: "2",
-        companyName: "Green Energy Corp",
-        companyId: "GEC456",
-        description: "Sustainable energy solutions.",
-        createdDate: "2024-10-02",
-      },
-      {
-        key: "3",
-        companyName: "HealthCare Solutions",
-        companyId: "HCS789",
-        description: "Revolutionizing healthcare.",
-        createdDate: "2024-10-03",
-      },
-      {
-        key: "4",
-        companyName: "EduTech Services",
-        companyId: "ETS101",
-        description: "Educational technology platforms.",
-        createdDate: "2024-10-04",
-      },
-      {
-        key: "5",
-        companyName: "Financial Advisors Inc.",
-        companyId: "FAI112",
-        description: "Expert financial advice.",
-        createdDate: "2024-10-05",
-      },
-      {
-        key: "6",
-        companyName: "Retail Solutions",
-        companyId: "RS131",
-        description: "E-commerce solutions for retailers.",
-        createdDate: "2024-10-06",
-      },
-      {
-        key: "7",
-        companyName: "Travel Global",
-        companyId: "TG415",
-        description: "Global travel services.",
-        createdDate: "2024-10-07",
-      },
-      {
-        key: "8",
-        companyName: "Foodie Delights",
-        companyId: "FD161",
-        description: "Gourmet food delivery services.",
-        createdDate: "2024-10-08",
-      },
-      {
-        key: "9",
-        companyName: "Smart Home Solutions",
-        companyId: "SHS718",
-        description: "Home automation solutions.",
-        createdDate: "2024-10-09",
-      },
-      {
-        key: "10",
-        companyName: "Cyber Security Experts",
-        companyId: "CSE192",
-        description: "Protecting your digital assets.",
-        createdDate: "2024-10-10",
       },
     ]);
   }, []);

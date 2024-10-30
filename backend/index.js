@@ -99,6 +99,59 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
+// API Route for saving application data
+app.post('/api/application', async (req, res) => {
+  const {
+    companyName,
+    companyId,
+    addressLine1,
+    addressLine2,
+    addressLine3,
+    country,
+    state,
+    city,
+    postcode,
+    description,
+  } = req.body;
+
+  try {
+    // Connect to SQL Server using the defined config
+    let pool = await sql.connect(config); // Use the existing config object
+
+    // Insert data into Applications table
+    const query = `
+      INSERT INTO Applications (
+        companyName, companyId, addressLine1, addressLine2, addressLine3,
+        country, state, city, postcode, description
+      ) VALUES (
+        @companyName, @companyId, @addressLine1, @addressLine2, @addressLine3,
+        @country, @state, @city, @postcode, @description
+      )
+    `;
+
+    // Execute the query with inputs
+    await pool.request()
+      .input('companyName', sql.VarChar, companyName)
+      .input('companyId', sql.VarChar, companyId)
+      .input('addressLine1', sql.VarChar, addressLine1)
+      .input('addressLine2', sql.VarChar, addressLine2)
+      .input('addressLine3', sql.VarChar, addressLine3)
+      .input('country', sql.VarChar, country)
+      .input('state', sql.VarChar, state)
+      .input('city', sql.VarChar, city)
+      .input('postcode', sql.VarChar, postcode)
+      .input('description', sql.Text, description)
+      .query(query);
+
+    // Send success response
+    res.status(201).json({ message: 'Application submitted successfully!' });
+  } catch (error) {
+    console.error('Database error:', error.message); // Log the error message for debugging
+    res.status(500).json({ message: 'Failed to submit application.' });
+  }
+});
+
+
 // Start the server
 app.listen(port, (err) => {
   if (err) {
