@@ -98,7 +98,19 @@ app.post('/api/signup', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
+app.get('/api/user', async (req, res) => {
+  const { email } = req.query; // Assuming you send the email in the query string
+  try {
+    const user = await db.query('SELECT fullName FROM Users WHERE email = ?', [email]);
+    if (user.length > 0) {
+      res.json(user[0]); // Return the first matching user
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 // API Route for saving application data
 app.post('/api/application', async (req, res) => {
   const {
@@ -150,8 +162,29 @@ app.post('/api/application', async (req, res) => {
     res.status(500).json({ message: 'Failed to submit application.' });
   }
 });
+// Example Express.js route
+app.get('/api/users', async (req, res) => {
+  const { email } = req.query;
+  // Fetch user from the database
+  const user = await db.query('SELECT fullName FROM Users WHERE email = ?', [email]);
+  res.json(user[0]); // Send the user's details
+});
 
 
+// Get a specific application by ID
+app.get('/api/application/:id', async (req, res) => {
+  const applicationId = req.params.id;
+  try {
+    const result = await pool.query('SELECT * FROM Applications WHERE id = ${id}', [id]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ message: "Application not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 // Start the server
 app.listen(port, (err) => {
   if (err) {
